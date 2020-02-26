@@ -1,0 +1,98 @@
+iris+xorm文章
+为什么选择iris框架？
+最好的6个go语言web框架，对比学习曲线，核心功能，性能
+iris在github上面例子比较多，beego也不少。
+在核心功能上面iris比较丰富
+性能方面iris和gin都是五颗星，性能比较好
+很多人也不会选择用web框架，因为功能越多，越丰富，性能就越弱，很多没必要的性能可以舍弃，引入的web框架还是对原生的net/http包的封装，封装的越深，越多，性能也就越差，不用框架，也是对性能的考虑，但是在很多项目里面对性能要求还不至于那么极致。
+我们使用web框架，能够帮我们更快搭建一个框架，更快的开发，更好的管理和维护，这些收益大于性能的时候，我们就会考虑使用框架。
+
+iris常用功能介绍
+安全认证
+缓存
+配置
+cookie
+文件
+mvc
+模版
+丰富的路由规则
+
+xorm工具，可以把数据表转换成go的struct,需要先设计好数据表，然后执行指令生成go model
+安装程序：go get github.com/go-xorm/cmd/xorm
+设置环境变量：go/bin加入到path路径下。
+export PATH2="/Users/btcc/go/bin"
+PATH=$PATH:$PATH1:$PATH2:
+测试：xorm help
+使用：xorm reverse mysql "root:123456@tcp(127.0.0.1:3306)/otc?charset=utf8" templates/goxorm/
+    xorm reverse+驱动+连接信息+指定模版
+
+如果go get不成功，就自己下载项目吧
+把xorm下载下来，然后进入这个xorm目录下面执行指令,去models目录下面，拿到model信息
+1. https://github.com/go-xorm/cmd.git
+2. cd /Users/btcc/go/cmd/xorm
+3. xorm reverse mysql "root:123456@tcp(127.0.0.1:3306)/otc?charset=utf8" templates/goxorm/
+
+
+
+
+
+单利模式
+先判断是否存在，存在就返回
+不存在，加锁，然后去创建对象，再返回
+
+但是如果一次请求十个过来，都是不存在，都在等待锁，只有一个请求可以加上锁，然后处理完了，其他九个请求依然会来创建对象，并返回。不严谨。
+更好的做法是加锁之后，再检查一次
+if aa!=nil{
+	return aa
+}
+l.lock()
+defer l.unlock()
+if aa!=nil{
+	return aa
+}
+//创建对象，返回
+
+
+
+基于ab或者wrk的压力测试
+apache服务自带的ab
+wrk https://github.com/wg/wrk
+
+f12可以看到每个请求的时间
+request-sent 发送时间
+waitting 等待时间
+content download 下载时间
+
+ 安装wrk：brew search wrk
+
+ab -h 查看帮助文档
+-n：总共测试多少个请求
+-c：并发多少
+ab -n10000 -c10  http://localhost:8000/api/member/v1/show
+结果：
+Requests per second:    5736.87 [#/sec] (mean)
+
+wrk
+-c 多少连接
+-t 并发数
+-d 持续时间
+wrk -c10 -t10 -d5 http://localhost:8000/api/member/v1/show
+结果
+Requests/sec:  10553.71
+
+ab默认短连接，wrk默认长连接
+wrk请求结束继续发，不会断开请求
+ab请求结果就中断了，重新建立一个连接
+
+只要查看请求数量就行了，然后去做优化，再测试看看请求数量是否可以增加
+
+集群
+单机缓存不一致的问题，注意更新xorm缓存
+
+利用负载均衡服务器构建集群
+利用nginx的tcp反向代理来实现
+lvs也可以做反向代理，但是只能在lunix系统做，性能比nginx更好，但是nginx在很多情况下都是可以满足要求的。
+
+使用dns和cnd做加速
+dns解析的时候，可以分配到不同的服务器
+cnd缓存集群并且离用户最近
