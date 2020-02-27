@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
+//队列
 type task struct {
 	id       uint32
 	callback chan uint
 }
-
 
 const taskNum = 16
 
@@ -46,7 +46,7 @@ func fetchPackageListMoney(chTasks chan task) {
 
 			t.callback <- money
 		} else {
-			t.callback <- 0
+			t.callback <- 0 //没有抢到返回0
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -84,7 +85,7 @@ func newGift() *[5]gift {
 		pic:     "敬业福.jpg",
 		link:    "",
 		isUse:   true,
-		rate:    0,
+		rate:    0, //这里的概率不是设置的，是根据图片扫描的，这里都写默认值
 		rateMin: 0,
 		rateMax: 0,
 	}
@@ -92,6 +93,7 @@ func newGift() *[5]gift {
 	return giftList
 }
 
+//提供接口修改概率
 func giftRage(rate string) *[5]gift {
 	giftList := newGift()
 	rates := strings.Split(rate, ",")
@@ -103,12 +105,12 @@ func giftRage(rate string) *[5]gift {
 			continue
 		}
 
+		//先定义一个默认值0
 		grate := 0
-
 		if i < ratesLen {
 			grate, _ = strconv.Atoi(rates[i])
 		}
-
+		//如果角标越界了，那就设置为默认值0好了
 		giftList[i].rate = grate
 
 		giftList[i].rateMin = rateStart
@@ -121,8 +123,6 @@ func giftRage(rate string) *[5]gift {
 			rateStart += grate
 		}
 	}
-
-	//fmt.Printf("giftLsit=%v\n", giftList)
-
+	fmt.Printf("生成后的数据:giftLsit=%v\n", giftList)
 	return giftList
 }

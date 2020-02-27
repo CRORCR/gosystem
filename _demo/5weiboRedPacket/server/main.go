@@ -6,7 +6,8 @@
  * 并发压力测试
  * wrk -t 10 -c 10 -d 5 http://localhost:8080/set?uid=1&money=100&num=100
  * packageList 中 map 和 map 中的 list 都要处理线程安全
- */
+使用工具测试并发的时候，会有个位数
+*/
 package server
 
 import (
@@ -33,15 +34,6 @@ type lotteryController struct {
 // GET http://localhost:8080/
 func (c *lotteryController) Get() map[uint32][2]int {
 	rs := make(map[uint32][2]int)
-
-	//for id, list := range packageList {
-	//	var money int
-	//	for _, v := range list {
-	//		money += int(v)
-	//	}
-	//	rs[id] = [2]int{len(list), money}
-	//}
-
 	packageList.Range(func(key, value interface{}) bool {
 		id := key.(uint32)
 		list := value.([]uint)
@@ -50,6 +42,7 @@ func (c *lotteryController) Get() map[uint32][2]int {
 		for _, v := range list {
 			money += int(v)
 		}
+		//红包id 红包数量 红包金额
 		rs[id] = [2]int{len(list), money}
 
 		return true
@@ -62,17 +55,19 @@ func (c *lotteryController) Get() map[uint32][2]int {
 // GET http://localhost:8080/set?uid=1&money=100&num=100
 func (c *lotteryController) GetSet() string {
 	uid, errUid := c.Ctx.URLParamInt("uid")
-	money, errMoney := c.Ctx.URLParamFloat64("money")
-	num, errNum := c.Ctx.URLParamInt("num")
+	money, errMoney := c.Ctx.URLParamFloat64("money") //金额
+	num, errNum := c.Ctx.URLParamInt("num")           //数量
 
 	if errUid != nil || errMoney != nil || errNum != nil {
 		return fmt.Sprintf("参数格式异常，errUid=%d, errMoney=%f, errNum=%d",
 			errUid, errMoney, errNum)
 	}
 
+	//元转换为分
 	moneyTotal := int(money * 100)
 
-	if uid < 1 || moneyTotal < num || num < 1 {
+	// moneyTotal < num  保证每个人都能得到最小的一分。
+	if uid < 1 || num < 1 || moneyTotal < num {
 		return fmt.Sprintf("参数数值异常，uid=%d, money=%d, num=%d",
 			uid, moneyTotal, num)
 	}
@@ -81,7 +76,7 @@ func (c *lotteryController) GetSet() string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// 随机分配的最大值，例如 10 元，最大的红包为 5.5 元
-	rMax := 0.55
+	rMax := 0.55 //随机分配最大值
 	if num >= 1000 {
 		rMax = 0.01
 	} else if num >= 100 {
@@ -116,6 +111,7 @@ func (c *lotteryController) GetSet() string {
 			break
 		}
 
+		//预留下最小金额，剩下的钱取随机数，运气好，就拿到最大的值
 		rMoney := int(float64(leftMoney-leftNum) * rMax)
 		m := r.Intn(rMoney)
 		if m < 1 {
@@ -153,7 +149,7 @@ func (c *lotteryController) GetGet() string {
 
 	//list, ok := packageList[uint32(id)]
 	list1, ok := packageList.Load(uint32(id))
-	list := list1.([]uint)
+	list := list1.([]uint) //类型转换
 
 	l := len(list)
 
@@ -165,7 +161,7 @@ func (c *lotteryController) GetGet() string {
 	callback := make(chan uint)
 	t := task{id: uint32(id), callback: callback}
 	// 发送任务
-	chTasks := chTaskList[id%taskNum]
+	chTasks := chTaskList[id%taskNum] //负载处理
 	chTasks <- t
 	// 接受返回结果
 	money := <-t.callback
@@ -210,7 +206,7 @@ func NewApp() *iris.Application {
 
 	for i := 0; i < taskNum; i++ {
 		chTaskList[i] = make(chan task)
-		go fetchPackageListMoney(chTaskList[i])
+		go fetchPackageListMoney(chTaskList[i]) //项目开始启动任务
 	}
 
 	return app
