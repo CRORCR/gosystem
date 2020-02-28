@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-xorm/xorm"
 
-	"go-lottery/comm"
-	"go-lottery/models"
+	"gosystem/comm"
+	"gosystem/models"
 )
 
 type GiftDao struct {
@@ -105,6 +105,7 @@ func (this *GiftDao) GetAllUse() []models.Gift {
 	return dataList
 }
 
+//保证原子操作 当left_num>0,就减一
 func (this *GiftDao) DecrLeftNum(id, num int) (int64, error) {
 	r, err := this.engine.
 		Id(id).
@@ -115,6 +116,7 @@ func (this *GiftDao) DecrLeftNum(id, num int) (int64, error) {
 	return r, err
 }
 
+//保证原子操作
 func (this *GiftDao) IncrLeftNum(id, num int) (int64, error) {
 	r, err := this.engine.
 		Id(id).

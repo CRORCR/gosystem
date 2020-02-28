@@ -1,9 +1,9 @@
 package services
 
 import (
-	"go-lottery/dao"
-	"go-lottery/dataSource"
-	"go-lottery/models"
+	"gosystem/dao"
+	"gosystem/dataSource"
+	"gosystem/models"
 )
 
 type CodeService interface {

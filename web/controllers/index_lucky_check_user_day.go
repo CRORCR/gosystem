@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"go-lottery/comm"
-	"go-lottery/conf"
-	"go-lottery/models"
+	"gosystem/comm"
+	"gosystem/conf"
+	"gosystem/models"
 )
 
 func (this *IndexController) checkUserDay(uid int) bool {
@@ -30,9 +30,9 @@ func (this *IndexController) checkUserDay(uid int) bool {
 			}
 		}
 	} else {
-		// 创建今天的用户参与jil
-		y, m, d := comm.NowTime().Date()
-		strday := fmt.Sprintf("%d%02d%02d", y, m, d)
+		// 创建今天的用户参与记录
+		y, m, d := comm.NowTime().Date()             //获得年月日
+		strday := fmt.Sprintf("%d%02d%02d", y, m, d) //转为字符串
 		userDayInfo = &models.UserDay{
 			Uid:        uid,
 			DAY:        strday,

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"go-lottery/comm"
-	"go-lottery/conf"
-	"go-lottery/models"
-	"go-lottery/utils"
+	"gosystem/comm"
+	"gosystem/conf"
+	"gosystem/models"
+	"gosystem/utils"
 )
 
 // GET http://localhost:8080/lucky
@@ -23,7 +23,8 @@ func (this *IndexController) GetLucky() {
 		return
 	}
 
-	// 2 用户抽奖分布式锁定
+	// 2 用户抽奖分布式锁定 防止用户重入，在web应用中，用户的行为是无法控制的，只能把可能出现的情况加以预防
+	//使用分布式锁，要注意保证原子性，避免死锁
 	ok := utils.LockLucky(loginUser.Uid)
 	if !ok {
 		rs.SetError(102, "正在抽奖，请稍后重试")
@@ -50,8 +51,10 @@ func (this *IndexController) GetLucky() {
 		return
 	}
 
-	// 黑名单
-	limitBlack := false
+	//黑名单不能获得实物奖
+	//避免同一个ip大量用户刷奖
+	//公平机制，中过大奖的用户在一段时间内把机会让出来
+	limitBlack := false // 黑名单
 	if ipDayNum > conf.IpPrizeMax {
 		limitBlack = true
 	}
@@ -91,7 +94,7 @@ func (this *IndexController) GetLucky() {
 		return
 	}
 
-	// 9 有限制奖品发放
+	// 9 有限制奖品发放  奖品的发放也需要用到redis分布式锁
 	if prizeGift.PrizeNum > 0 {
 		ok = utils.PrizeGift(prizeGift.Id, this.ServiceGift)
 		if !ok {
@@ -119,8 +122,8 @@ func (this *IndexController) GetLucky() {
 		GiftType:   prizeGift.Gtype,
 		Uid:        loginUser.Uid,
 		Username:   loginUser.Username,
-		PrizeCode:  prizeCode,
-		GiftData:   prizeGift.Gdata,
+		PrizeCode:  prizeCode,       //中奖编码
+		GiftData:   prizeGift.Gdata, //奖品类型
 		SysCreated: comm.NowTime(),
 		SysStatus:  0,
 		SysIP:      ip,
@@ -129,8 +132,7 @@ func (this *IndexController) GetLucky() {
 	err := this.ServiceResult.Insert(&result)
 
 	if err != nil {
-		log.Println("index_lucky.GetLucky ServiceResult.Insert",
-			result, "error=", err)
+		log.Println("index_lucky.GetLucky ServiceResult.Insert", result, "error=", err)
 		rs.SetError(209, not_prize_msg)
 		this.Ctx.Next()
 		return

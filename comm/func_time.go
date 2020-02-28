@@ -3,7 +3,7 @@ package comm
 import (
 	"time"
 
-	"go-lottery/conf"
+	"gosystem/conf"
 )
 
 // 当前时间的时间戳
@@ -43,10 +43,12 @@ func ParseTime(s string) (time.Time, error) {
 	return time.ParseInLocation(conf.SysTimeForm, s, conf.SysTimeLocation)
 }
 
+//时间戳转time
 func StampToTime(u int) time.Time {
 	return time.Unix(int64(u), 0).In(conf.SysTimeLocation)
 }
 
+//time转时间戳
 func TimeToStamp(t time.Time) int {
 	return int(t.In(conf.SysTimeLocation).Unix())
 }

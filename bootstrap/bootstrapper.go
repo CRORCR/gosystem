@@ -8,13 +8,13 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 
-	"go-lottery/comm"
-	"go-lottery/conf"
+	"gosystem/comm"
+	"gosystem/conf"
 )
 
 const (
-	StaticAssets = "./public/"
-	Favicon      = "favicon.ico"
+	StaticAssets = "./public/"   //站点对外目录
+	Favicon      = "favicon.ico" //sql文件
 )
 
 type Configurator func(bootstrapper *Bootstrapper)
@@ -41,12 +41,13 @@ func New(appName, appOwner string, cfgList ...Configurator) *Bootstrapper {
 	return b
 }
 
+//初始化
 func (this *Bootstrapper) Bootstrap() *Bootstrapper {
-	//this.SetupViews("./views")
-	this.SetupErrorHandler()
+	//this.SetupViews("./views") //设置模版
+	this.SetupErrorHandler() //设置异常信息
 
-	this.Favicon(StaticAssets + Favicon)
-	//this.StaticWeb(StaticAssets[1:len(StaticAssets)-1], StaticAssets)
+	this.Favicon(StaticAssets + Favicon) //设置默认图标
+	//this.StaticWeb(StaticAssets[1:len(StaticAssets)-1], StaticAssets) //设置静态站点
 
 	this.setupCron()
 
@@ -56,6 +57,7 @@ func (this *Bootstrapper) Bootstrap() *Bootstrapper {
 	return this
 }
 
+//监听
 func (this *Bootstrapper) Listen(addr string, cfgList ...iris.Configurator) {
 	err := this.Run(iris.Addr(addr), cfgList...)
 
@@ -64,11 +66,12 @@ func (this *Bootstrapper) Listen(addr string, cfgList ...iris.Configurator) {
 	}
 }
 
+//模版初始化
 func (this *Bootstrapper) SetupViews(viewDir string) {
 	htmlEngine := iris.HTML(viewDir, ".html").Layout("shared/layout.html")
 	//htmlEngine := iris.HTML(viewDir, ".html")
 
-	// production 环境设置 false
+	//测试环境每次修改模版都会加载，修改比较方便，生产环境记得设置 false
 	htmlEngine.Reload(true)
 
 	htmlEngine.AddFunc("FromUnixTimeShort", func(t int) string {
@@ -84,6 +87,7 @@ func (this *Bootstrapper) SetupViews(viewDir string) {
 	this.RegisterView(htmlEngine)
 }
 
+//异常处理
 func (this *Bootstrapper) SetupErrorHandler() {
 	this.OnAnyErrorCode(func(ctx iris.Context) {
 		err := iris.Map{
@@ -97,8 +101,7 @@ func (this *Bootstrapper) SetupErrorHandler() {
 			return
 		}
 
-		ctx.JSON(err)
-
+		//如果没有json输出，就用模版输出
 		//ctx.ViewData("Err", err)
 		//ctx.ViewData("Title", "Error")
 		//ctx.View("shared/error.html")
@@ -111,6 +114,7 @@ func (this *Bootstrapper) Configure(cfgList ...Configurator) {
 	}
 }
 
+//计划任务
 func (this *Bootstrapper) setupCron() {
 	// TODO
 }

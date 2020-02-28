@@ -55,8 +55,8 @@ func initGift() {
 		gtype:    giftTypeRealLarge,
 		data:     "",
 		dataList: nil,
-		total:    10, //总数 改成20000 压测
-		left:     10, //剩余 改成20000 压测
+		total:    10,   //总数 改成20000 压测
+		left:     10,   //剩余 改成20000 压测
 		isUse:    true, //出了手机，其他全部改成false 压测
 		rate:     1,
 		rateMin:  0,
@@ -130,7 +130,7 @@ func initGift() {
 	// 数据整理，中奖区间数据
 	rateStart := 0
 	for _, data := range giftList {
-		if !data.isUse {//如果不可用状态
+		if !data.isUse { //如果不可用状态
 			continue
 		}
 		data.rateMin = rateStart

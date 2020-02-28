@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"go-lottery/comm"
-	"go-lottery/models"
+	"gosystem/comm"
+	"gosystem/models"
 )
 
 func (this *IndexController) checkBlackUser(uid int) (*models.BlackUser, bool) {

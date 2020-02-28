@@ -5,9 +5,9 @@ import (
 
 	"github.com/kataras/iris"
 
-	"go-lottery/comm"
-	"go-lottery/models"
-	"go-lottery/services"
+	"gosystem/comm"
+	"gosystem/models"
+	"gosystem/services"
 )
 
 type AdminBlackIpController struct {

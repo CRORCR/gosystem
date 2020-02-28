@@ -4,7 +4,7 @@ import "time"
 
 type UserDay struct {
 	Id         int       `xorm:"INT pk autoincr 'id'"`
-	Uid        int       `xorm:"INT 'uid'"`
+	Uid        string    `xorm:"VARCHAR(50) 'uid'"`
 	DAY        string    `XORM:"VARCHAR(8) 'day'"`
 	Num        int       `xorm:"INT 'num'"`
 	SysCreated time.Time `xorm:"DATETIME DEFAULT CURRENT_TIMESTAMP created 'sys_created'"`

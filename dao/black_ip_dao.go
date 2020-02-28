@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-xorm/xorm"
 
-	"go-lottery/models"
+	"gosystem/models"
 )
 
 type BlackIpDao struct {

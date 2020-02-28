@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"go-lottery/comm"
-	"go-lottery/dataSource"
+	"gosystem/comm"
+	"gosystem/dataSource"
 )
 
 const ipFrameSize = 2
@@ -16,6 +16,7 @@ func init() {
 	resetGroupIpList()
 }
 
+//每日凌晨数据清空
 func resetGroupIpList() {
 	log.Println("ip_day_lucky.resetGroupIpList start")
 	redisDB := dataSource.RedisInstCache()
@@ -30,12 +31,13 @@ func resetGroupIpList() {
 	time.AfterFunc(duration, resetGroupIpList)
 }
 
+//原子性递增
 func IncrIpLuckyNum(strIp string) int64 {
 	ip := comm.Ip4ToInt(strIp)
 	i := ip % ipFrameSize
-	key := fmt.Sprintf("day_ips_%d", i)
+	key := fmt.Sprintf("day_ips_%d", i) //散列存储
 	redisDB := dataSource.RedisInstCache()
-	rs, err := redisDB.Do("HINCRBY", key, ip, 1)
+	rs, err := redisDB.Do("HINCRBY", key, ip, 1) //hash结构存储
 	if err != nil {
 		log.Println("ip_day_lucky redis HINCRBY error ", err)
 		return math.MaxInt64

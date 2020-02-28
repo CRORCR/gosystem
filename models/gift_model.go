@@ -15,8 +15,8 @@ type Gift struct {
 	DisplayOrder int       `xorm:"INT 'display_order'"`
 	Gtype        int       `xorm:"INT 'gtype'"`
 	Gdata        string    `xorm:"VARCHAR(255) 'gdata'"`
-	TimeBegin    time.Time `xorm:"DATETIME 'time_begin'"`
-	TimeEnd      time.Time `xorm:"DATETIME 'time_end'"`
+	TimeBegin    int       `xorm:"INT 'time_begin'"`
+	TimeEnd      int       `xorm:"INT 'time_end'"`
 	PrizeData    string    `xorm:"MEDIUMTEXT 'prize_data'"`
 	PrizeBegin   time.Time `xorm:"DATETIME 'prize_begin'"`
 	PrizeEnd     time.Time `xorm:"DATETIME 'prize_end'"`

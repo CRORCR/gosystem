@@ -3,8 +3,8 @@ package utils
 import (
 	"log"
 
-	"go-lottery/comm"
-	"go-lottery/services"
+	"gosystem/comm"
+	"gosystem/services"
 )
 
 func PrizeGift(id int, giftService services.GiftService) bool {
@@ -19,7 +19,7 @@ func PrizeGift(id int, giftService services.GiftService) bool {
 }
 
 func PrizeCodeDiff(id int, codeService services.CodeService) string {
-	lockUid := 0 - id - 100000000
+	lockUid := 0 - id - 100000000 //为了避免和userid重复，所以弄个负数
 
 	ok := LockLucky(lockUid)
 	if !ok {
@@ -33,7 +33,7 @@ func PrizeCodeDiff(id int, codeService services.CodeService) string {
 	codeInfo := codeService.NextUsingCode(id, codeId)
 
 	if codeInfo != nil && codeInfo.Id > 0 {
-		codeInfo.SysStatus = 2
+		codeInfo.SysStatus = 2 //2：发放出去
 		codeInfo.SysUpdated = comm.NowTime()
 		codeService.Update(codeInfo, nil)
 		return codeInfo.Code

@@ -11,21 +11,24 @@ import (
 
 	"github.com/kataras/iris"
 
-	"go-lottery/conf"
-	"go-lottery/models"
+	"gosystem/conf"
+	"gosystem/models"
 )
 
+//request读取ip
 func ClientIp(request *http.Request) string {
 	host, _, _ := net.SplitHostPort(request.RemoteAddr)
 	return host
 }
 
+//重定向
 func Redirect(writer http.ResponseWriter, url string) {
 	writer.Header().Add("Location", url)
 	writer.WriteHeader(http.StatusFound)
 }
 
 func SetLoginUser(writer http.ResponseWriter, loginUser *models.LoginUser) {
+	//删除cookie
 	if loginUser == nil || loginUser.Uid < 1 {
 		c := &http.Cookie{
 			Name:   "lottery_login_user",
@@ -62,6 +65,7 @@ func GetLoginUser(request *http.Request) *models.LoginUser {
 		return nil
 	}
 
+	//cookie的值用url去解开
 	params, err := url.ParseQuery(c.Value)
 	if err != nil {
 		return nil
@@ -99,12 +103,13 @@ func GetLoginUser(request *http.Request) *models.LoginUser {
 	return loginUser
 }
 
+//使用md5签名
 func CreateLoginUserSign(loginUser *models.LoginUser) string {
 	s := fmt.Sprintf(
 		"uid=%d&username=%s&secret=%s&now=%d",
 		loginUser.Uid,
 		loginUser.Username,
-		conf.CookieSecret,
+		conf.CookieSecret, //这个密钥放在服务端
 		TimeToStamp(loginUser.Now),
 	)
 	return fmt.Sprintf("%x", md5.Sum([]byte(s)))

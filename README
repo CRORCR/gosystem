@@ -96,3 +96,22 @@ lvs也可以做反向代理，但是只能在lunix系统做，性能比nginx更�
 使用dns和cnd做加速
 dns解析的时候，可以分配到不同的服务器
 cnd缓存集群并且离用户最近
+
+优化
+对数据源增加redis缓存，减少对mysql的依赖和读写。
+可以全量缓存，也可以散列（分散到不同的key上，控制每个key的数据量，提高效率）部分缓存
+奖品数据全量缓存，json序列化成string，因为奖品是有顺序的，使用hash不合适，list也没有任何优势。
+奖品数据更新频率很低，没有必要把每个奖品分开维护
+gift-service 增加三个方法：getAllByCache，setAllByCache，updateByCache
+修改读取方式，增加useCache bool参数
+修改数据的时候，记得清空缓存
+
+单个用户数据的缓存，hash结构（一次只 读取/更新 部分字段，而且不需要json系列化）
+用户数据不合适做全量缓存，用户数据数量大，而且更新频率大
+user-service 增加三个方法：getByCache，setByCache，updateByCache
+
+ip黑名单 hash结构 blackkip_service
+user-service 增加三个方法：getByCache，setByCache，updateByCache
+修改和洗白也需要更新黑名单缓存
+
+ip今日抽奖次数 hash

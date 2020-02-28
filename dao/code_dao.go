@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-xorm/xorm"
 
-	"go-lottery/models"
+	"gosystem/models"
 )
 
 type CodeDao struct {
@@ -82,7 +82,7 @@ func (this *CodeDao) UpdateByCode(data *models.Code, columns []string) error {
 func (this *CodeDao) NextUsingCode(giftId, codeId int) *models.Code {
 	dataList := make([]models.Code, 0)
 	err := this.engine.
-		Where("gift_id+?", giftId).
+		Where("gift_id=?", giftId).
 		Where("sys_status=?", 0).
 		Where("id>?", codeId).
 		Asc("id").

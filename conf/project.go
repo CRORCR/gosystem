@@ -10,7 +10,7 @@ const (
 	SysTimeFormShort = "2006-01-02"          // 日期转换格式
 	IpLimitMax       = 500                   // 相同 IP 参与数
 	IpPrizeMax       = 10                    // 相同 IP 中奖数
-	UserPrizeMax     = 3000                  // 同一用户宗匠数
+	UserPrizeMax     = 3000                  // 同一用户抽奖数
 )
 
 const (
@@ -22,8 +22,8 @@ const (
 )
 
 var (
-	SysTimeLocation, _ = time.LoadLocation("Asia/Shanghai")
-	SignSecret         = []byte("1234567890abcedfg")
-	CookieSecret       = "hellolottery"
+	SysTimeLocation, _ = time.LoadLocation("Asia/Shanghai") //市区
+	SignSecret         = []byte("1234567890abcedfg")        //加密解密的密钥
+	CookieSecret       = "hellolottery"                     //cookie密钥
 	LoginUser          = new(sync.Map)
 )

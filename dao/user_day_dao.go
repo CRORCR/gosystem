@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-xorm/xorm"
 
-	"go-lottery/models"
+	"gosystem/models"
 )
 
 type UserDayDao struct {
@@ -16,8 +16,8 @@ func NewUserDayDao(engine *xorm.Engine) *UserDayDao {
 	return &UserDayDao{engine: engine}
 }
 
-func (this *UserDayDao) Get(id int) *models.UserDay {
-	data := &models.UserDay{Id: id}
+func (this *UserDayDao) Get(id int) *models.BlackUser {
+	data := &models.BlackUser{Id: id}
 
 	ok, err := this.engine.Get(data)
 

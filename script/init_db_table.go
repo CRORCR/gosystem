@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 
-	"go-lottery/models"
+	"gosystem/models"
 )
 
 func main() {

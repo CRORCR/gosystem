@@ -64,7 +64,7 @@ func (c *lotteryController) PostImport() string {
 
 	for _, u := range users {
 		u := strings.TrimSpace(u) //防止前后空格输入
-		if len(u) > 0 { //有效的用户存入
+		if len(u) > 0 {           //有效的用户存入
 			userList = append(userList, u)
 		}
 	}

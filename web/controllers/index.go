@@ -6,10 +6,10 @@ import (
 
 	"github.com/kataras/iris"
 
-	"go-lottery/comm"
-	"go-lottery/conf"
-	"go-lottery/models"
-	"go-lottery/services"
+	"gosystem/comm"
+	"gosystem/conf"
+	"gosystem/models"
+	"gosystem/services"
 )
 
 type IndexController struct {
@@ -38,7 +38,7 @@ func (this *IndexController) Get() {
 	this.Ctx.Next()
 }
 
-// http://localhost:8080/gifts
+// http://localhost:8080/gifts 获取礼品信息
 func (this *IndexController) GetGifts() {
 	rs := comm.FromCtxGetResult(this.Ctx)
 
@@ -58,9 +58,10 @@ func (this *IndexController) GetGifts() {
 	this.Ctx.Next()
 }
 
-// http://localhost:8080/new/prize
-func (this *IndexController) GetNewPrize() {
+// http://localhost:8080/new/prize 最新获奖列表
+func (this *IndexController) GetNewPrize() map[string]interface{} {
 	// TODO
+	return nil
 
 }
 

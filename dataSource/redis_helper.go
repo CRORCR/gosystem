@@ -8,7 +8,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 
-	"go-lottery/conf"
+	"gosystem/conf"
 )
 
 var redisInst *RedisConn
@@ -22,8 +22,8 @@ type RedisConn struct {
 func (this *RedisConn) Do(commandName string,
 	args ...interface{}) (reply interface{}, err error) {
 
-	conn := this.pool.Get()
-	defer conn.Close() // 将连接放回连接池
+	conn := this.pool.Get() //连接池拿一个连接
+	defer conn.Close()      // 将连接放回连接池
 
 	t1 := time.Now().UnixNano()
 	reply, err = conn.Do(commandName, args...)
@@ -37,6 +37,7 @@ func (this *RedisConn) Do(commandName string,
 
 	t2 := time.Now().UnixNano()
 
+	//是否需要打印连接日志
 	if this.showDebug {
 		fmt.Printf(
 			"[redis] [info] [%dus] cmd=%s, args=%v, reply=%s, err=%s\n",
@@ -52,6 +53,7 @@ func (this *RedisConn) ShowDebug(show bool) {
 	this.showDebug = show
 }
 
+//单利模式
 func RedisInstCache() *RedisConn {
 
 	if redisInst != nil {
@@ -61,6 +63,7 @@ func RedisInstCache() *RedisConn {
 	redisLock.Lock()
 	defer redisLock.Unlock()
 
+	//两次判断 小细节要注意
 	if redisInst != nil {
 		return redisInst
 	}

@@ -3,8 +3,8 @@ package response
 import (
 	"github.com/kataras/iris"
 
-	"go-lottery/bootstrap"
-	"go-lottery/conf"
+	"gosystem/bootstrap"
+	"gosystem/conf"
 )
 
 func Configure(b *bootstrap.Bootstrapper) {

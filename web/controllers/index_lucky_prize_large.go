@@ -1,14 +1,11 @@
 package controllers
 
 import (
-	"go-lottery/comm"
-	"go-lottery/models"
+	"gosystem/comm"
+	"gosystem/models"
 )
 
-func (this *IndexController) prizeLarge(ip string,
-	loginUser *models.LoginUser,
-	userInfo *models.BlackUser,
-	blackIpInfo *models.BlackIp) {
+func (this *IndexController) prizeLarge(ip string, loginUser *models.LoginUser, userInfo *models.BlackUser, blackIpInfo *models.BlackIp) {
 	now := comm.NowUnix()
 	blackTime := 30 * 86400
 

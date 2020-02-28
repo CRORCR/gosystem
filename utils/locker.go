@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"go-lottery/dataSource"
+	"gosystem/dataSource"
 )
 
 func getLuckyLockKye(uid int) string {
@@ -12,7 +12,7 @@ func getLuckyLockKye(uid int) string {
 
 func LockLucky(uid int) bool {
 	key := getLuckyLockKye(uid)
-	redisDB := dataSource.RedisInstCache()
+	redisDB := dataSource.RedisInstCache() //得到redis实例
 	rs, _ := redisDB.Do("SET", key, 1, "EX", 3, "NX")
 	if rs == "OK" {
 		return true
