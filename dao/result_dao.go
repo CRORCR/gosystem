@@ -1,8 +1,9 @@
+/**
+ * 抽奖系统的数据库操作
+ */
 package dao
 
 import (
-	"log"
-
 	"github.com/go-xorm/xorm"
 
 	"gosystem/models"
@@ -13,49 +14,38 @@ type ResultDao struct {
 }
 
 func NewResultDao(engine *xorm.Engine) *ResultDao {
-	return &ResultDao{engine: engine}
+	return &ResultDao{
+		engine: engine,
+	}
 }
 
-func (this *ResultDao) Get(id int) *models.Result {
+func (d *ResultDao) Get(id int) *models.Result {
 	data := &models.Result{Id: id}
-
-	ok, err := this.engine.Get(data)
-
+	ok, err := d.engine.Get(data)
 	if ok && err == nil {
 		return data
 	} else {
-		return nil
+		data.Id = 0
+		return data
 	}
-
 }
 
-func (this *ResultDao) GetAll() []models.Result {
-	dataList := make([]models.Result, 0)
-
-	err := this.engine.
+func (d *ResultDao) GetAll(page, size int) []models.Result {
+	offset := (page - 1) * size
+	datalist := make([]models.Result, 0)
+	err := d.engine.
 		Desc("id").
-		Find(&dataList)
-
+		Limit(size, offset).
+		Find(&datalist)
 	if err != nil {
-		log.Println("Result_dao.GetAll error=", err)
-		return dataList
+		return datalist
 	} else {
-		return dataList
+		return datalist
 	}
 }
 
-func (this *ResultDao) CountAll() int64 {
-	num, err := this.engine.Count(&models.Result{})
-	if err != nil {
-		return 0
-	} else {
-		return num
-	}
-}
-
-func (this *ResultDao) CountByGift(giftId int) int64 {
-	num, err := this.engine.
-		Where("gift_di=?", giftId).
+func (d *ResultDao) CountAll() int64 {
+	num, err := d.engine.
 		Count(&models.Result{})
 	if err != nil {
 		return 0
@@ -64,64 +54,84 @@ func (this *ResultDao) CountByGift(giftId int) int64 {
 	}
 }
 
-func (this *ResultDao) CountByUser(uid int) int64 {
-	num, err := this.engine.
-		Where("uid=?", uid).
-		Count(&models.Result{})
+func (d *ResultDao) GetNewPrize(size int, giftIds []int) []models.Result {
+	datalist := make([]models.Result, 0)
+	err := d.engine.
+		In("gift_id", giftIds).
+		Desc("id").
+		Limit(size).
+		Find(&datalist)
 	if err != nil {
-		return 0
+		return datalist
 	} else {
-		return num
+		return datalist
 	}
 }
 
-// 软删除
-func (this *ResultDao) Delete(id int) error {
-	data := &models.Result{Id: id, SysStatus: 1}
-	_, err := this.engine.Id(data.Id).Update(data)
-	return err
-}
-
-func (this *ResultDao) Update(data *models.Result, columns []string) error {
-	_, err := this.engine.Id(data.Id).MustCols(columns...).Update(data)
-	return err
-}
-
-func (this *ResultDao) Insert(data *models.Result) error {
-	_, err := this.engine.Insert(data)
-	return err
-}
-
-func (this *ResultDao) SearchByGift(giftId, page, size int) []models.Result {
-	dataList := make([]models.Result, 0)
-
-	err := this.engine.
+func (d *ResultDao) SearchByGift(giftId, page, size int) []models.Result {
+	offset := (page - 1) * size
+	datalist := make([]models.Result, 0)
+	err := d.engine.
 		Where("gift_id=?", giftId).
-		Limit(page, (page-1)*size).
 		Desc("id").
-		Find(&dataList)
-
+		Limit(size, offset).
+		Find(&datalist)
 	if err != nil {
-		log.Println("Result_dao.GetAll error=", err)
-		return dataList
+		return datalist
 	} else {
-		return dataList
+		return datalist
 	}
 }
 
-func (this *ResultDao) SearchByUser(uid, page, size int) []models.Result {
-	dataList := make([]models.Result, 0)
-
-	err := this.engine.
+func (d *ResultDao) SearchByUser(uid, page, size int) []models.Result {
+	offset := (page - 1) * size
+	datalist := make([]models.Result, 0)
+	err := d.engine.
 		Where("uid=?", uid).
-		Limit(page, (page-1)*size).
 		Desc("id").
-		Find(&dataList)
-
+		Limit(size, offset).
+		Find(&datalist)
 	if err != nil {
-		log.Println("Result_dao.GetAll error=", err)
-		return dataList
+		return datalist
 	} else {
-		return dataList
+		return datalist
 	}
+}
+
+func (d *ResultDao) CountByGift(giftId int) int64 {
+	num, err := d.engine.
+		Where("gift_id=?", giftId).
+		Count(&models.Result{})
+	if err != nil {
+		return 0
+	} else {
+		return num
+	}
+}
+
+func (d *ResultDao) CountByUser(uid int) int64 {
+	num, err := d.engine.
+		Where("uid=?", uid).
+		Count(&models.Result{})
+	if err != nil {
+		return 0
+	} else {
+		return num
+	}
+}
+
+func (d *ResultDao) Delete(id int) error {
+	data := &models.Result{Id: id, SysStatus: 1}
+	_, err := d.engine.Id(data.Id).Update(data)
+	return err
+}
+
+func (d *ResultDao) Update(data *models.Result, columns []string) error {
+	_, err := d.engine.Id(data.Id).MustCols(columns...).Update(data)
+	return err
+}
+
+func (d *ResultDao) Create(data *models.Result) error {
+	_, err := d.engine.Insert(data)
+	return err
 }

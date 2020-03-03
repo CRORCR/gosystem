@@ -7,7 +7,7 @@ import (
 )
 
 type ResultService interface {
-	GetAll() []models.Result
+	GetAll(page, size int) []models.Result
 	CountAll() int64
 	CountByGift(giftId int) int64
 	CountByUser(uid int) int64
@@ -29,8 +29,8 @@ func NewResultService() ResultService {
 	}
 }
 
-func (this *resultService) GetAll() []models.Result {
-	return this.dao.GetAll()
+func (this *resultService) GetAll(page, size int) []models.Result {
+	return this.dao.GetAll(page, size)
 }
 
 func (this *resultService) CountAll() int64 {
@@ -57,7 +57,7 @@ func (this *resultService) Update(data *models.Result, columns []string) error {
 }
 
 func (this *resultService) Insert(data *models.Result) error {
-	return this.dao.Insert(data)
+	return this.dao.Create(data)
 }
 
 func (this *resultService) SearchByGift(giftId, page, size int) []models.Result {

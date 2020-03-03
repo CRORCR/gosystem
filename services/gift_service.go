@@ -3,14 +3,12 @@ package services
 import (
 	"encoding/json"
 	"gosystem/comm"
-	"log"
-	"strconv"
-	"strings"
-	"time"
-
 	"gosystem/dao"
 	"gosystem/dataSource"
 	"gosystem/models"
+	"log"
+	"strconv"
+	"strings"
 )
 
 type GiftService interface {
@@ -29,6 +27,7 @@ type giftService struct {
 	dao *dao.GiftDao
 }
 
+// 返回 GiftService 接口 而不是 私有的giftService 否则外界无法使用
 func NewGiftService() GiftService {
 	return &giftService{
 		dao: dao.NewGiftDao(dataSource.NewMysqlMaster()),
@@ -166,7 +165,7 @@ func (this *giftService) getAllByCache() []models.Gift {
 			PrizeNum:     int(comm.GetInt64FromMap(data, "prize_num", 0)),
 			LeftNum:      0,
 			PrizeCode:    "",
-			PrizeTime:    time.Time{},
+			PrizeTime:    0,
 			Img:          "",
 			DisplayOrder: 0,
 			Gtype:        0,
@@ -174,10 +173,9 @@ func (this *giftService) getAllByCache() []models.Gift {
 			TimeBegin:    0,
 			TimeEnd:      0,
 			PrizeData:    "", //发奖计划，这里不要序列化存储，因为这个字段非常大
-			PrizeBegin:   time.Time{},
-			PrizeEnd:     time.Time{},
-			SysCreated:   time.Time{},
-			SysUpdated:   time.Time{},
+			PrizeBegin:   0,
+			PrizeEnd:     0,
+			SysCreated:   0,
 			SysStatus:    0,
 			SysIP:        "",
 		}
@@ -186,11 +184,12 @@ func (this *giftService) getAllByCache() []models.Gift {
 	return gifts
 }
 
-//redis缓存
+// 将奖品的数据更新到Redis缓存
 func (this *giftService) setAllByCache(gifts []models.Gift) {
 	strValue := ""
 	if len(gifts) > 0 {
 		dataList := make([]map[string]interface{}, len(gifts))
+		//数据结构 []models.Gift 转换为 []map[string]interface{}{}
 		for i := 0; i < len(gifts); i++ {
 			gift := gifts[i]
 			data := make(map[string]interface{})

@@ -1,17 +1,25 @@
+/**
+ * redis缓存配置信息
+ */
 package conf
 
-type RedisConfig struct {
+type RdsConfig struct {
 	Host      string
 	Port      int
-	IsRunning bool
+	User      string
+	Pwd       string
+	IsRunning bool // 是否正常运行
 }
 
-var RedisCacheList = []RedisConfig{
+// 系统中用到的所有redis缓存资源
+var RdsCacheList = []RdsConfig{
 	{
-		Host:      "127.0.0.1",
+		Host:      "192.168.174.134",
 		Port:      6379,
+		User:      "",
+		Pwd:       "",
 		IsRunning: true,
 	},
 }
 
-var RedisCache = RedisCacheList[0]
+var RedisCache RdsConfig = RdsCacheList[0]

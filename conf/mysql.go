@@ -1,25 +1,29 @@
+/**
+ * mysql数据库配置信息
+ */
 package conf
 
 const MysqlDriverName = "mysql"
 
-type MysqlConfig struct {
+type DbConfig struct {
 	Host      string
 	Port      int
 	User      string
 	Pwd       string
 	Database  string
-	IsRunning bool
+	IsRunning bool // 是否正常运行
 }
 
-var MysqlMasterList = []MysqlConfig{
+// 系统中所有mysql主库 root:root@tcp(127.0.0.1:3306)/lottery?charset=utf8
+var DbMasterList = []DbConfig{
 	{
-		Host:      "127.0.0.1",
+		Host:      "192.168.174.134",
 		Port:      3306,
 		User:      "root",
-		Pwd:       "caojiacan",
-		Database:  "goLottery",
+		Pwd:       "root",
+		Database:  "lottery",
 		IsRunning: true,
 	},
 }
 
-var MysqlMaster = MysqlMasterList[0]
+var DbMaster DbConfig = DbMasterList[0]

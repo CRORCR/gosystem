@@ -83,3 +83,15 @@ func (this *BlackUserDao) GetByUid(uid int) *models.BlackUser {
 		return &dataList[0]
 	}
 }
+
+func (this *BlackUserDao) Search(uid int, day string) []models.BlackUser {
+	dataList := make([]models.BlackUser, 0)
+	err := this.engine.Where("uid=? and day=?", uid, day).
+		Desc("id").Find(&dataList)
+
+	if err != nil || len(dataList) <= 1 {
+		return nil
+	} else {
+		return dataList
+	}
+}

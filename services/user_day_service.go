@@ -2,134 +2,71 @@ package services
 
 import (
 	"fmt"
-	"gosystem/comm"
-	"gosystem/dao"
 	"gosystem/dataSource"
-	"gosystem/models"
-	"log"
+	"strconv"
+	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"gosystem/dao"
+	"gosystem/models"
 )
 
-type UserDayService interface {
-	GetAll() []models.UserDay
+type UserdayService interface {
+	GetAll(page, size int) []models.UserDay
 	CountAll() int64
-	Get(id int) *models.BlackUser
-	Delete(id int) error
-	Update(data *models.UserDay, columns []string) error
-	Insert(data *models.UserDay) error
-	GetByUid(uid int) *models.UserDay
+	Search(uid int, day int) []models.UserDay
+	Count() int64
+	Get(id int) *models.UserDay
+	Update(user *models.UserDay, columns []string) error
+	Create(user *models.UserDay) error
 	GetUserToday(uid int) *models.UserDay
 }
 
-type userDayService struct {
+type userdayService struct {
 	dao *dao.UserDayDao
 }
 
-func NewUserDayService() UserDayService {
-	return &userDayService{
-		dao: dao.NewUserDayDao(dataSource.NewMysqlMaster()),
+func NewUserdayService() UserdayService {
+	return &userdayService{
+		dao: dao.NewUserDayDao(dataSource.MysqlInstMaster()),
 	}
 }
 
-func (this *userDayService) GetAll() []models.UserDay {
-	return this.dao.GetAll()
+func (s *userdayService) GetAll(page, size int) []models.UserDay {
+	return s.dao.GetAll(page, size)
 }
 
-func (this *userDayService) CountAll() int64 {
-	return this.dao.CountAll()
+func (s *userdayService) CountAll() int64 {
+	return s.dao.CountAll()
 }
 
-func (this *userDayService) Get(id int) *models.BlackUser {
-	user := this.getByCache(id)
-	if user == nil || user.Id <= 0 {
-		user = this.dao.Get(id)
-		if user != nil && user.Id > 0 { //数据库读到了数据，再存入缓存，否则存进去无效数据
-			this.setByCache(user)
-		}
-	}
-	return user
+func (s *userdayService) Search(uid int, day int) []models.UserDay {
+	return s.dao.Search(uid, day)
 }
 
-func (this *userDayService) Delete(id int) error {
-	return this.dao.Delete(id)
+func (s *userdayService) Count() int64 {
+	return s.dao.CountAll()
 }
 
-func (this *userDayService) Update(data *models.UserDay, columns []string) error {
-	return this.dao.Update(data, columns)
+func (s *userdayService) Get(id int) *models.UserDay {
+	return s.dao.Get(id)
 }
 
-func (this *userDayService) Insert(data *models.UserDay) error {
-	return this.dao.Insert(data)
+func (s *userdayService) Update(data *models.UserDay, columns []string) error {
+	return s.dao.Update(data, columns)
 }
 
-func (this *userDayService) GetByUid(uid int) *models.UserDay {
-	return this.dao.GetByUid(uid)
+func (s *userdayService) Create(data *models.UserDay) error {
+	return s.dao.Insert(data)
 }
 
-func (this *userDayService) GetUserToday(uid int) *models.UserDay {
-	y, m, d := comm.NowTime().Date()
+func (s *userdayService) GetUserToday(uid int) *models.UserDay {
+	y, m, d := time.Now().Date()
 	strDay := fmt.Sprintf("%d%02d%02d", y, m, d)
-	return this.dao.Search(uid, strDay)
-}
-
-//redis缓存
-func (this *userDayService) getByCache(id int) *models.BlackUser {
-	key := fmt.Sprintf("info_suer_%v", id)
-	rds := dataSource.RedisInstCache()
-	dataMap, err := redis.StringMap(rds.Do("HGETALL", key))
-	if err != nil {
-		log.Println("user service.getByCache HGETALL key=", key, ",error=", err)
+	day, _ := strconv.Atoi(strDay)
+	list := s.dao.Search(uid, day)
+	if list != nil && len(list) > 0 {
+		return &list[0]
+	} else {
 		return nil
 	}
-	dataid := comm.GetInt64FromStringMap(dataMap, "Id", 0)
-	if dataid <= 0 {
-		return nil
-	}
-	data := &models.BlackUser{
-		Id:         id,
-		Username:   comm.GetStringFromStringMap(dataMap, "Username", ""),
-		BlackTime:  int(comm.GetInt64FromStringMap(dataMap, "BlackTime", 0)),
-		RealName:   comm.GetStringFromStringMap(dataMap, "RealName", ""),
-		Mobile:     comm.GetStringFromStringMap(dataMap, "Mobile", ""),
-		Address:    comm.GetStringFromStringMap(dataMap, "Address", ""),
-		SysCreated: int(comm.GetInt64FromStringMap(dataMap, "SysCreated", 0)),
-		SysUpdated: int(comm.GetInt64FromStringMap(dataMap, "SysUpdated", 0)),
-		SysIP:      comm.GetStringFromStringMap(dataMap, "SysIP", ""),
-		SysStatus:  int(comm.GetInt64FromStringMap(dataMap, "SysStatus", 0)),
-	}
-
-	return data
-}
-
-//redis缓存
-func (this *userDayService) setByCache(user *models.BlackUser) {
-	if user == nil || user.Id <= 0 {
-		return
-	}
-	key := fmt.Sprintf("info_suer_%v", user.Id)
-	rds := dataSource.RedisInstCache()
-
-	params := redis.Args{key}
-	params = params.Add(user.Id)
-	if user.Username != "" {
-		params = params.Add(user.Username)
-		params = params.Add(user.SysStatus)
-		params = params.Add(user.Mobile)
-		params = params.Add(user.RealName)
-		// ...
-	}
-	_, err := rds.Do("HMSET", params) //多字段批量添加
-	if err != nil {
-		log.Println("user service.setByCache HMSET key=", key, ",params=", params, ",error=", err)
-	}
-}
-
-//redis缓存
-func (this *userDayService) updateByCache(user *models.BlackUser, column []string) {
-	if user == nil || user.Id <= 0 {
-		return
-	}
-	key := fmt.Sprintf("info_suer_%v", user.Id)
-	dataSource.RedisInstCache().Do("DEL", key)
 }

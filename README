@@ -99,6 +99,10 @@ cnd缓存集群并且离用户最近
 
 优化
 对数据源增加redis缓存，减少对mysql的依赖和读写。
+大量的数据读取和存储可以使用redis，比如奖品信息，优惠券信息，用户信息，ip黑名单，今日抽奖次数等等。
+原子性操作， redis的递增，递减也优于mysql。
+但是redis增加缓存，也就是增加了一层冗余数据，通过空间换时间，特别注意要保证数据同步
+
 可以全量缓存，也可以散列（分散到不同的key上，控制每个key的数据量，提高效率）部分缓存
 奖品数据全量缓存，json序列化成string，因为奖品是有顺序的，使用hash不合适，list也没有任何优势。
 奖品数据更新频率很低，没有必要把每个奖品分开维护
@@ -114,4 +118,21 @@ ip黑名单 hash结构 blackkip_service
 user-service 增加三个方法：getByCache，setByCache，updateByCache
 修改和洗白也需要更新黑名单缓存
 
-ip今日抽奖次数 hash
+ip今日抽奖次数 hash IncrIpLuckyNum原子性递增用户今日抽奖次数
+用户今日抽奖次数 hash InitUserLuckyNum 从数据库初始化缓存数据
+为什么IP抽奖次数不需要存储数据库，而用户今日抽奖次数必须要存储数据库呢？
+ip限制是多个人共同的操作，这个值很大，多一点少一点没关系，而用户的限制就比较严格，用户限制也需要每日清空 restGroupUserList
+同时user的数据库结构使用hash，使用散列，使每个hash结构尽量小一点，提高redis执行效率。
+
+优惠券的全量缓存，不需要顺序，使用set集合，增加就set进去，拿出来就删掉了，场景比较合适
+ImportCacheCodes
+RecacheCodes
+GetCacheCodeNum
+
+发奖计划数据维护
+精确到每分钟到发奖计划 其实每分钟，每天的计划应该不一样，根据请求数量来确定一个概率种子会更好点
+
+
+还差utils和web没有比对
+
+

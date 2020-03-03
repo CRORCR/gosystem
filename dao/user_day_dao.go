@@ -16,8 +16,8 @@ func NewUserDayDao(engine *xorm.Engine) *UserDayDao {
 	return &UserDayDao{engine: engine}
 }
 
-func (this *UserDayDao) Get(id int) *models.BlackUser {
-	data := &models.BlackUser{Id: id}
+func (this *UserDayDao) Get(id int) *models.UserDay {
+	data := &models.UserDay{Id: id}
 
 	ok, err := this.engine.Get(data)
 
@@ -29,7 +29,7 @@ func (this *UserDayDao) Get(id int) *models.BlackUser {
 
 }
 
-func (this *UserDayDao) GetAll() []models.UserDay {
+func (this *UserDayDao) GetAll(page, size int) []models.UserDay {
 	dataList := make([]models.UserDay, 0)
 
 	err := this.engine.
@@ -84,7 +84,7 @@ func (this *UserDayDao) GetByUid(uid int) *models.UserDay {
 	}
 }
 
-func (this *UserDayDao) Search(uid int, day string) *models.UserDay {
+func (this *UserDayDao) Search(uid int, day int) []models.UserDay {
 	dataList := make([]models.UserDay, 0)
 	err := this.engine.Where("uid=?", uid).
 		Where("day=", day).
@@ -93,6 +93,6 @@ func (this *UserDayDao) Search(uid int, day string) *models.UserDay {
 	if err != nil || len(dataList) == 1 {
 		return nil
 	} else {
-		return &dataList[0]
+		return dataList
 	}
 }

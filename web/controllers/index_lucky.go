@@ -25,21 +25,31 @@ func (this *IndexController) GetLucky() {
 
 	// 2 用户抽奖分布式锁定 防止用户重入，在web应用中，用户的行为是无法控制的，只能把可能出现的情况加以预防
 	//使用分布式锁，要注意保证原子性，避免死锁
+	//只是锁定某1个用户请求,而不是锁定抽奖接口
 	ok := utils.LockLucky(loginUser.Uid)
 	if !ok {
 		rs.SetError(102, "正在抽奖，请稍后重试")
 		this.Ctx.Next()
 		return
-	} else {
+	} else { // 加锁成功必须解锁,防止死锁
 		defer utils.UnLockLucky(loginUser.Uid)
 	}
 
 	// 3 验证用户今日参与次数
-	ok = this.checkUserDay(loginUser.Uid)
-	if !ok {
+	//如果redis重启,所有的用户执行递增加1操作, 0 + 1 = 1 则进入数据库验证分支
+	//  但是数据库存储的用户今日参与抽奖次数可能大于1好多了
+	num := utils.IncrUserLuckyNum(loginUser.Uid)
+	if num >= conf.UserPrizeMax {
 		rs.SetError(103, "今日的抽奖次数已用完，明天再来吧")
 		this.Ctx.Next()
 		return
+	} else {
+		ok = this.checkUserDay(loginUser.Uid, num) //比对一下 数据库和redis是否一致，不一致更新redis
+		if !ok {
+			rs.SetError(103, "今日的抽奖次数已用完，明天再来吧")
+			this.Ctx.Next()
+			return
+		}
 	}
 
 	// 4 验证 IP 今日的参与次数
@@ -96,7 +106,12 @@ func (this *IndexController) GetLucky() {
 
 	// 9 有限制奖品发放  奖品的发放也需要用到redis分布式锁
 	if prizeGift.PrizeNum > 0 {
-		ok = utils.PrizeGift(prizeGift.Id, this.ServiceGift)
+		if utils.GetGiftPoolNum(prizeGift.Id) <= 0 {
+			rs.SetError(206, "很遗憾，没有中奖，请下次再试")
+			this.Ctx.Next()
+			return
+		}
+		ok = utils.PrizeGift(prizeGift.Id, prizeGift.LeftNum)
 		if !ok {
 			rs.SetError(207, not_prize_msg)
 			this.Ctx.Next()
@@ -105,7 +120,8 @@ func (this *IndexController) GetLucky() {
 	}
 
 	// 10 不用编码的优惠券的发放
-	if prizeGift.Gtype == conf.GiftTypeCodeDiff {
+	// 优惠券需要发放1个唯一编码,编码池没有可用编码,发奖失败
+	if prizeGift.Gtype == conf.GtypeCodeDiff {
 		code := utils.PrizeCodeDiff(prizeGift.Id, this.ServiceCode)
 		if code == "" {
 			rs.SetError(208, not_prize_msg)
@@ -139,7 +155,7 @@ func (this *IndexController) GetLucky() {
 	}
 
 	// 如果是实物大奖需要将用户 IP 设置成黑名单一段时间
-	if prizeGift.Gtype == conf.GiftTypeGiftLarge {
+	if prizeGift.Gtype == conf.GtypeGiftLarge {
 		this.prizeLarge(ip, loginUser, userInfo, blackIpInfo)
 	}
 

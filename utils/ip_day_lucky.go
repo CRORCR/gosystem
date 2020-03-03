@@ -12,6 +12,7 @@ import (
 
 const ipFrameSize = 2
 
+// init 程序启动时调用1次 清理ip分段数据
 func init() {
 	resetGroupIpList()
 }
@@ -31,7 +32,7 @@ func resetGroupIpList() {
 	time.AfterFunc(duration, resetGroupIpList)
 }
 
-//原子性递增
+//今天的IP抽奖次数递增，返回递增后的数值 原子性递增
 func IncrIpLuckyNum(strIp string) int64 {
 	ip := comm.Ip4ToInt(strIp)
 	i := ip % ipFrameSize

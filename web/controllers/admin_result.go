@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"gosystem/utils"
 
 	"github.com/kataras/iris"
 
@@ -26,12 +27,15 @@ func (this *AdminResultController) Get() {
 
 	var dataList []models.Result
 
+	//获取数据库数量和缓存的数量
+	var num, cacheNum int
 	if giftId > 0 {
 		dataList = this.ServiceResult.SearchByGift(giftId, page, size)
+		num, cacheNum = utils.GetCacheCodeNum(giftId, services.NewCodeService())
 	} else if uid > 0 {
 		dataList = this.ServiceResult.SearchByUser(uid, page, size)
 	} else {
-		dataList = this.ServiceResult.GetAll()
+		dataList = this.ServiceResult.GetAll(1, 10)
 	}
 
 	total := (page - 1) + len(dataList)
@@ -55,19 +59,22 @@ func (this *AdminResultController) Get() {
 	}
 
 	rs.Data = map[string]interface{}{
-		"giftId":   giftId,
-		"uid":      uid,
-		"total":    total,
-		"page":     page,
-		"size":     size,
-		"pagePrev": pagePrev,
-		"pageNext": pageNext,
-		"list":     dataList,
+		"giftId":    giftId,
+		"uid":       uid,
+		"total":     total,
+		"page":      page,
+		"size":      size,
+		"pagePrev":  pagePrev,
+		"pageNext":  pageNext,
+		"list":      dataList,
+		"code_num":  num,
+		"cache_num": cacheNum,
 	}
 
 	this.Ctx.Next()
 }
 
+// 中奖记录删除
 func (this *AdminResultController) GetDelete() {
 	rs := comm.FromCtxGetResult(this.Ctx)
 	id, err := this.Ctx.URLParamInt("id")
@@ -91,11 +98,12 @@ func (this *AdminResultController) GetDelete() {
 	this.Ctx.Next()
 }
 
+// 中奖记录作弊
 func (this *AdminResultController) GetCheat() {
 	rs := comm.FromCtxGetResult(this.Ctx)
 
 	id, err := this.Ctx.URLParamInt("id")
-	if err == nil || id == -1 {
+	if err != nil || id == -1 {
 		rs.SetError(1, "missing id")
 		this.Ctx.Next()
 		return
@@ -124,7 +132,7 @@ func (this *AdminResultController) GetReset() {
 	rs := comm.FromCtxGetResult(this.Ctx)
 
 	id, err := this.Ctx.URLParamInt("id")
-	if err == nil || id == -1 {
+	if err != nil || id == -1 {
 		rs.SetError(1, "missing id")
 		this.Ctx.Next()
 		return
