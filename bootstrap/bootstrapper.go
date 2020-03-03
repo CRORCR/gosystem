@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"gosystem/cron"
 	"log"
 	"time"
 
@@ -116,5 +117,5 @@ func (this *Bootstrapper) Configure(cfgList ...Configurator) {
 
 //计划任务
 func (this *Bootstrapper) setupCron() {
-	// TODO
+	cron.ConfigueAppOneCron()
 }

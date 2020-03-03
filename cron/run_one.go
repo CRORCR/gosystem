@@ -36,6 +36,7 @@ func resetAllGiftPrizeData() {
 	time.AfterFunc(5*time.Minute, resetAllGiftPrizeData)
 }
 
+//填充奖品定时任务
 func distributionAllGiftPool() {
 	log.Println("crontab start utils.DistributionGiftPool")
 	num := utils.DistributionGiftPool()

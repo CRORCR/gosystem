@@ -244,7 +244,7 @@ func ResetGiftPrizeData(giftInfo *models.Gift, giftService services.GiftService)
 	}
 
 	// 重置发奖计划数据 清空奖品池
-	// 之前奖品池有剩余也不管 之前期的发奖计划
+	// 之前奖品池有剩余也不管
 	// 只关心本期发奖计划
 	setGiftPool(id, 0)
 
@@ -311,7 +311,7 @@ func ResetGiftPrizeData(giftInfo *models.Gift, giftService services.GiftService)
 	}
 }
 
-// 清空旧的奖品发放计划
+// 清空旧的奖品发放计划 清空数据库，清空redis
 func clearGiftPrizeData(giftInfo *models.Gift, giftService services.GiftService) {
 	info := &models.Gift{
 		Id: giftInfo.Id,
@@ -441,17 +441,15 @@ func DistributionGiftPool() int {
 	totalNum := 0
 	now := comm.NowUnix()
 	giftService := services.NewGiftService()
-	// 读数据库,不读缓存,后台程序读取频率低
-	list := giftService.GetAll(false)
+	list := giftService.GetAll(true)
 	if list != nil && len(list) > 0 {
 		for _, gift := range list {
 			// 是否正常状态
 			if gift.SysStatus != 0 {
 				continue
 			}
-			// 是否限量产品
+			// 是否限量产品 不限量的奖品,不做处理
 			if gift.PrizeNum < 1 {
-				// 不限量的奖品,不做处理
 				continue
 			}
 			// 时间段是否正常
@@ -469,7 +467,7 @@ func DistributionGiftPool() int {
 			if err != nil {
 				log.Println("prizedata.DistributionGiftPool json.Unmarshal error = ", err)
 			} else {
-				index := 0
+				index := 0 //偏移量
 				giftNum := 0
 				for i, data := range cronData {
 					ct := data[0]
@@ -513,8 +511,7 @@ func DistributionGiftPool() int {
 			}
 		}
 		if totalNum > 0 {
-			// 超过1个奖品经过处理了,奖品发奖任务更新到数据库了,写入缓存
-			// 数据库Update会清空缓存,这里手动做1次查询,重新建立缓存
+			// 超过1个奖品经过处理了,奖品发奖任务更新到数据库了,数据库执行Update会清空缓存,这里手动做1次查询,重新建立缓存
 			giftService.GetAll(true)
 		}
 	}
@@ -530,8 +527,8 @@ func incrGiftPool(giftId, num int) int {
 		return 0
 	}
 
+	// 二次补偿 递增之后，是不是小于预期值
 	if int(rtNum) < num {
-		// 二次补偿
 		num2 := num - int(rtNum)
 		rtNum, err = redis.Int64(cacheObj.Do("HINCRBY", conf.RdsGiftPoolCacheKey, giftId, num2))
 		if err != nil {
@@ -539,7 +536,6 @@ func incrGiftPool(giftId, num int) int {
 			return 0
 		}
 		// 三次补偿?  实际可能性非常低了,在几微秒redis出现大规模需要补偿情况概率非常小
-		// 如果严格要求,做递归调用,不及预期一致调用下去
 	}
 	return int(rtNum)
 }
