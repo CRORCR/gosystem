@@ -47,6 +47,8 @@ func ParseTime(str string) (time.Time, error) {
 	return time.ParseInLocation(conf.SysTimeform, str, conf.SysTimeLocation)
 }
 
+const SysTimeform = "2006-01-02 15:04:05"
+
 // 得到一个随机数 如 传入 10000 返回 0-9999 随机数
 func Random(max int) int {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))

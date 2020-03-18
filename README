@@ -32,10 +32,6 @@ PATH=$PATH:$PATH1:$PATH2:
 2. cd /Users/btcc/go/cmd/xorm
 3. xorm reverse mysql "root:123456@tcp(127.0.0.1:3306)/otc?charset=utf8" templates/goxorm/
 
-
-
-
-
 单利模式
 先判断是否存在，存在就返回
 不存在，加锁，然后去创建对象，再返回
@@ -51,7 +47,6 @@ if aa!=nil{
 	return aa
 }
 //创建对象，返回
-
 
 
 基于ab或者wrk的压力测试
@@ -149,5 +144,3 @@ wrk压力测试之后发现很多环节的耗时，其中看到了redis性能很
 
 业务逻辑
 业务逻辑多，qps，并发肯定就上不去，时间就会比较长，需要我们平衡，是要更快，还是要更完善
-
-
